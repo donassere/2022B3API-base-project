@@ -6,3 +6,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
   \c devapi
   create extension if not exists "uuid-ossp";
 EOSQL
+
+# docker exec -it postgres psql -U postgres
+#   CREATE DATABASE devapi;
+#   \c devapi
+#   create extension if not exists "uuid-ossp";
