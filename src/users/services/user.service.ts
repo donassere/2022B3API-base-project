@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { isUUID } from 'class-validator';
 import { query } from 'express';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -11,72 +12,47 @@ import { UserEntity } from '../entity/user.entity';
 @Injectable()
 export class UsersService {
   private readonly users: CreateUserDto[] = [];
-
   constructor(
     @InjectRepository(UserEntity)    
     private readonly userRepo: Repository<UserEntity>,
   ) {}
 
-  async findOne(options?: object): Promise<UserDto> {
-    const user =  await this.userRepo.findOne(options);    
-    return toUserDto(user);  
+
+  async findOne(options?: object): Promise<UserEntity> {
+    return this.userRepo.findOne(options);      
   }
 
-  async getUser({email, username, id}: UserDto): Promise<UserDto> {
-    const found = await this.userRepo.findOne({ where:{ email, username, id }});
-    return toUserDto(found);
-  }
   
-  async getUserEmail({email}: UserDto): Promise<UserDto> {
-    const foundEmail = await this.userRepo.findOne({ where: { email }
+  async getUserId(id: string): Promise<UserEntity> {
+    if (!isUUID(id)) {
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);    
+    }
+    const foundId = await this.userRepo.findOne({ where: { id: id, },
     });
-    if (!foundEmail) {
-      throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);    
-  } 
-    return toUserDto(foundEmail);
+    if (foundId === null ){
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND); 
+    } 
+    return foundId;
   }
 
-  async getUserId({id}: UserDto): Promise<UserDto> {
-    const foundId = await this.userRepo.findOne({ where: { id }
-    });
-    if (!foundId) {
-      throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);    
-  } 
-    return toUserDto(foundId);
-  }
 
-  async create(userDto: CreateUserDto): Promise<UserDto> {    
-    const { username, password, email } = userDto;
-        
+  async create(userDto: CreateUserDto): Promise<UserEntity> {    
+    const { username, password, email } = userDto;    
     const userInDb = await this.userRepo.findOne({ 
         where: { email } 
     });
     if (userInDb) {
         throw new HttpException('User already exists', HttpStatus.INTERNAL_SERVER_ERROR);    
     }
-    
     const user: UserEntity = await this.userRepo.create({ username, password, email });
     await this.userRepo.save(user);
-    return toUserDto(user);  
-  }
-
-  async findByLogin({ email, password }: LoginUserDto): Promise<UserDto> {    
-    const user = await this.userRepo.findOne({ where: { email } });
-    
-    if (!user) {
-        throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);    
-    }  
-    
-    if (user.password != password) {
-        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);    
-    }
-    
-    return toUserDto(user);  
+    return user;  
   }
 
 
-  getHello(): string {
-    return 'Hello';
+  async findAllUser(): Promise<UserEntity[]>{
+    const users = await this.userRepo.find()
+    console.table([users[0]])
+    return this.userRepo.find()
   }
-
 }

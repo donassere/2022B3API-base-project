@@ -14,15 +14,10 @@ export class UsersController {
       private authService: AuthService
     ) {}
     
-
-  @Get('/')
-  getHello(@Query() query:{ name:string }): string {
-    return this.userService.getHello()+ " " + `${query.name}`;
-  }
-
-  @Get('/me')
-  getUserEmail(userDto: UserDto){
-    return this.userService.getUserEmail(userDto);
+  @UseGuards(JwtAuthGuard)
+  @Get('')
+  getAllUser() {
+    return this.userService.findAllUser();
   }
 
   @Post('/auth/sign-up')
@@ -34,19 +29,21 @@ export class UsersController {
   @UsePipes(ValidationPipe)
   @Post('/auth/login')
   public async login(@Body() loginUserDto: LoginUserDto) {
-    console.log(loginUserDto.email, loginUserDto.password)
     return this.authService.login(loginUserDto.email, loginUserDto.password);
   }
 
-  @Get('/users/{id}')
-  getUserId(@Param('id') userDto: UserDto){
-    return this.userService.getUserId(userDto);
-  }
-
-  //@UseGuards(JwtAuthGuard)
-  @Get('/users')
+  @UseGuards(JwtAuthGuard)
+  @Get('/me')
   getProfile(@Request() req) {
+    console.log(req.user)
     return req.user;
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  getUserId(@Param('id')id: string){
+    return this.userService.getUserId(id);
+  }
+
+  
 }
