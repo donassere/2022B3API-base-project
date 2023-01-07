@@ -5,7 +5,6 @@ import { ProjectEntity } from "../../projects/entity/project.entity";
 @Entity('user')
 export class UserEntity {  
     @PrimaryGeneratedColumn('uuid')
-    @ManyToOne(() => ProjectEntity, (project) => project.referringEmployeeId)
     id: string;
 
     @Column({ 

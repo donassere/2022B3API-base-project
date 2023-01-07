@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { UserDto } from "../../users/dto/user.dto";
 import { UserEntity } from "../../users/entity/user.entity";
 
@@ -19,7 +19,7 @@ export class ProjectEntity {
   }) 
     description: string;
 
-    @OneToMany(() => UserEntity, (user) => user.id)
+    @ManyToOne(() => UserEntity, (user) => user.id)
       referringEmployeeId: string;
     
 }

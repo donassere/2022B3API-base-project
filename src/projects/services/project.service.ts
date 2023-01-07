@@ -4,6 +4,7 @@ import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { HttpException, HttpStatus, Injectable, NotFoundException, Query } from '@nestjs/common';
 import { CreateProjectDto } from '../dto/create-project.dto';
+import { UserDto } from "../../users/dto/user.dto";
 
 @Injectable()
   export class ProjectService {
@@ -13,24 +14,32 @@ import { CreateProjectDto } from '../dto/create-project.dto';
         private readonly projectRepo: Repository<ProjectEntity>,
     ) {}
 
-  async create(projectDto: CreateProjectDto): Promise<ProjectEntity> {    
-    const { name, description, referringEmployeeId } = projectDto;    
-    const projectInDb = await this.projectRepo.findOne({ 
-        where: { name } 
-    });
-    if (projectInDb) {
-        throw new HttpException('Project already exists', HttpStatus.INTERNAL_SERVER_ERROR);    
-    }
-    const project: ProjectEntity = await this.projectRepo.create({ name, description, referringEmployeeId });
-    await this.projectRepo.save(project);
-    return project;  
+    GetAllProjects(): Promise<ProjectEntity[]> {
+      return this.projectRepo.find();
   }
 
+  GetAllMySelf(): Promise<ProjectEntity[]> {
+      return this.projectRepo.find();
+  }
 
-  async getAllProject(): Promise<ProjectEntity[]>{
-    const projects = await this.projectRepo.find()
-    console.table([projects[0]])
-    return this.projectRepo.find()
+  GetOneUserProjects(id: string): Promise<ProjectEntity[]> {
+      return this.projectRepo.find({ where: {referringEmployeeId: id} });
+  }
 
+  Create(project: CreateProjectDto): Promise<ProjectEntity> {
+      const newProject = this.projectRepo.create(project);
+      return this.projectRepo.save(newProject);
+  }
+
+  FindOneProject(id: string): Promise<ProjectEntity> {
+      return this.projectRepo.findOne({ where: {id: id} });
+  }
+
+  FindProjectForCSV(id: string): Promise<ProjectEntity> {
+      return this.projectRepo.findOne({ where: {referringEmployeeId: id} });
+  }
+
+  async CheckManager(projectId: string, userId: string): Promise<ProjectEntity> {
+      return await this.projectRepo.findOne({ where: {id: projectId, referringEmployeeId: userId} });
   }
 }

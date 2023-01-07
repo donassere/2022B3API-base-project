@@ -18,11 +18,18 @@ export class UsersService {
   ) {}
 
 
-  async findOne(options?: object): Promise<UserEntity> {
-    return this.userRepo.findOne(options);      
-  }
+      FindOneEmail(email: string): Promise<UserEntity> {
+        return this.userRepo.findOne({ where: {email: email} });
+    }
 
-  
+    FindOneUser(username: string): Promise<UserEntity> {
+        return this.userRepo.findOne({ where: {username: username} });
+    }
+
+    FindOneId(id: string): Promise<UserEntity> {
+        return this.userRepo.findOne({ where: {id: id} });
+    }
+
   async getUserId(id: string): Promise<UserEntity> {
     if (!isUUID(id)) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);    
